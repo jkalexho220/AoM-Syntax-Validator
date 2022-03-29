@@ -3069,12 +3069,12 @@ Chats out the value of one of the trigger scratch variables.&#xD;
     <method return="float" name="rmGetSeaLevel">
         <javadoc>Gets the sea level for the map.</javadoc>
     </method>
-    <method return="void" name="rmRandFloat">
+    <method return="float" name="rmRandFloat">
         <parameters type="float" name="min"/>
         <parameters type="float" name="max"/>
         <javadoc>Returns a random float between min and max.</javadoc>
     </method>
-    <method return="void" name="rmRandInt">
+    <method return="int" name="rmRandInt">
         <parameters type="int" name="min"/>
         <parameters type="int" name="max"/>
         <javadoc>Returns a random integer between min and max.</javadoc>
