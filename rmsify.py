@@ -25,8 +25,8 @@ import sys
 ###############################
 ####### CUSTOMIZE THESE #######
 ###############################
-FILENAME = 'my RMS.xs'
-files = ['main.c']
+FILENAME = 'my file.xs'
+files = ['example.c']
 
 #########################################
 ####### CODE BELOW (DO NOT TOUCH) #######
@@ -555,11 +555,15 @@ class Returner(Job):
 class Declaration(StackFrame):
 	def __init__(self, name, parent):
 		super().__init__('', parent)
+		global ln
+		global line
 		self.state = STATE_NEED_NAME
 		self.type = 'VARIABLE'
 		self.datatype = name
 		self.returner = None
 		self.returnType = 'void'
+		self.ln = ln
+		self.line = line
 
 	def resolve(self):
 		if not self.closed:
@@ -571,7 +575,10 @@ class Declaration(StackFrame):
 					FUNCTIONS[self.name].add(frame.datatype)
 		elif self.state == STATE_CLOSED:
 			if self.returnType != self.datatype:
-				error("Function must return a value of type " + self.datatype)
+				global ERRORED
+				ERRORED = True
+				print("Function must return a value of type " + self.datatype)
+				print("Line " + str(self.ln) + ":\n    " + self.line)
 
 	def accept(self, token):
 		knownVars = getKnownVariables()
@@ -949,6 +956,8 @@ with open('Commands.xml', 'r') as fd:
 
 print("rmsification start!")
 
+functions = {''}
+unknowns = {''}
 ln = 1
 FILE_1 = None
 comment = False
@@ -1086,8 +1095,3 @@ except IOError:
 	sys.exit("Files not found!")
 
 print("Done!")
-if (len(unknowns) > 1):
-	print("Unknowns: ")
-	print(unknowns)
-	"""
-	#"""

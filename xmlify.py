@@ -464,11 +464,15 @@ class Returner(Job):
 class Declaration(StackFrame):
 	def __init__(self, name, parent):
 		super().__init__('', parent)
+		global ln
+		global line
 		self.state = STATE_NEED_NAME
 		self.type = 'VARIABLE'
 		self.datatype = name
 		self.returner = None
 		self.returnType = 'void'
+		self.ln = ln
+		self.line = line
 
 	def resolve(self):
 		if not self.closed:
@@ -480,7 +484,10 @@ class Declaration(StackFrame):
 					FUNCTIONS[self.name].add(frame.datatype)
 		elif self.state == STATE_CLOSED:
 			if self.returnType != self.datatype:
-				error("Function must return a value of type " + self.datatype)
+				global ERRORED
+				ERRORED = True
+				print("Function must return a value of type " + self.datatype)
+				print("Line " + str(self.ln) + ":\n    " + self.line)
 
 	def accept(self, token):
 		global KNOWN_VARIABLES
