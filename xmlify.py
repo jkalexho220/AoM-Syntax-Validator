@@ -343,6 +343,9 @@ class Logic(StackFrame):
 					elif self.children[0].datatype != 'bool':
 						error("Contents of " + self.name + " do not resolve to a boolean! " + self.children[0].datatype)
 						accepted = False
+					elif self.children[0].type == 'ASSIGNMENT':
+						error("Assignment operator in " + self.name + ". Use == instead.")
+						accepted = False
 					if accepted:
 						self.children[0].resolve()
 						self.children.clear()
