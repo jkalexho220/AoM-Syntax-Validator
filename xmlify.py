@@ -62,6 +62,9 @@ class CustomFunction:
 FUNCTIONS = {}
 BASE_JOB = None
 
+THE_TRIGGER_KNOWS = []
+IN_TRIGGER = False
+
 KNOWN_FOR = []
 KNOWN_TRIGGERS = []
 KNOWN_VARIABLES = ['cNumberPlayers', 'cInvalidVector', 'cOriginVector', 'cActivationTime']
@@ -398,6 +401,15 @@ class Trigger(StackFrame):
 		self.state = STATE_NEED_NAME
 		self.type = 'TRIGGER'
 		self.datatype = 'void'
+		global IN_TRIGGER
+		IN_TRIGGER = True
+
+	def resolve(self):
+		if self.state == STATE_CLOSED:
+			global THE_TRIGGER_KNOWS
+			global IN_TRIGGER
+			IN_TRIGGER = False
+			THE_TRIGGER_KNOWS = []
 
 	def accept(self, token):
 		global KNOWN_VARIABLES
@@ -490,6 +502,8 @@ class Declaration(StackFrame):
 				print("Line " + str(self.ln) + ":\n    " + self.line)
 
 	def accept(self, token):
+		global THE_TRIGGER_KNOWS
+		global IN_TRIGGER
 		global KNOWN_VARIABLES
 		global KNOWN_TYPES
 		accepted = True
@@ -499,11 +513,15 @@ class Declaration(StackFrame):
 				if token in KNOWN_VARIABLES:
 					error("Declaring a function or variable name that was already declared in this context: " + token)
 					accepted = False
+				elif token in THE_TRIGGER_KNOWS and IN_TRIGGER:
+					error("Duplicate declaration of variable within the same trigger: " + token)
 				else:
 					self.name = token
 					self.state = STATE_NEED_PARENTHESIS
 					KNOWN_VARIABLES.append(self.name)
 					KNOWN_TYPES.append(self.datatype)
+					if IN_TRIGGER:
+						THE_TRIGGER_KNOWS.append(self.name)
 			elif self.state == STATE_NEED_PARENTHESIS:
 				if not token in ['=', '(']:
 					accepted = False
@@ -648,7 +666,7 @@ class Function(Mathable):
 		if not self.closed:
 			super().resolve()
 			self.closed = True
-			if self.state != 2:
+			if self.state != 3:
 				error("Missing close parenthesis");
 			elif len(self.children) > len(self.expected):
 				error("Too many inputs for " + self.name + " expected " + str(len(self.expected)) + " but received " + str(len(self.children)))
@@ -671,17 +689,25 @@ class Function(Mathable):
 				else:
 					accepted = False
 			elif token == ')':
-				self.state = 2;
+				self.state = 3;
 				self.resolve()
-			elif token == ',':
-				if len(self.children) == self.count:
-					error("Unused comma")
-					accepted = False
-				else:
-					self.children[-1].resolve()
-					self.count = len(self.children)
-			else:
+			elif self.state == 1:
 				accepted = self.parseGeneric(token)
+				if accepted:
+					self.state = 2
+			elif self.state == 2:
+				if token == ',':
+					if len(self.children) == self.count:
+						error("Unused comma")
+						accepted = False
+					else:
+						self.children[-1].resolve()
+						self.count = len(self.children)
+						self.state = 1;
+				else:
+					error("Missing comma in function statement in: " + self.name)
+					accepted = False
+				
 		return accepted
 
 class Variable(Mathable):
@@ -938,6 +964,7 @@ try:
 						file_data_2.write('\n')
 					line = file_data_1.readline()
 					ln = ln + 1
+			BASE_JOB.resolve()
 			# reformat the .c raw code
 			with open(FILE_1, 'w') as file_data_1:
 				for line in rewrite:
