@@ -113,6 +113,7 @@ def getKnownVariables():
 	global KNOWN_VARIABLES
 	global KNOWN_VARIABLES_RMS
 	global ESCAPE
+	global RESTORING
 	if ESCAPE and not RESTORING:
 		return KNOWN_VARIABLES_RMS
 	else:
@@ -122,6 +123,7 @@ def getKnownDatatypes():
 	global KNOWN_TYPES
 	global KNOWN_TYPES_RMS
 	global ESCAPE
+	global RESTORING
 	if ESCAPE and not RESTORING:
 		return KNOWN_TYPES_RMS
 	else:
@@ -131,6 +133,7 @@ def getKnownFor():
 	global KNOWN_FOR
 	global KNOWN_FOR_RMS
 	global ESCAPE
+	global RESTORING
 	if ESCAPE and not RESTORING:
 		return KNOWN_FOR_RMS
 	else:
@@ -138,6 +141,7 @@ def getKnownFor():
 
 def setKnownVariables(newlist):
 	global ESCAPE
+	global RESTORING
 	if ESCAPE and not RESTORING:
 		global KNOWN_VARIABLES_RMS
 		KNOWN_VARIABLES_RMS = newlist
@@ -147,6 +151,7 @@ def setKnownVariables(newlist):
 
 def setKnownDatatypes(newlist):
 	global ESCAPE
+	global RESTORING
 	if ESCAPE and not RESTORING:
 		global KNOWN_TYPES_RMS
 		KNOWN_TYPES_RMS = newlist
@@ -156,6 +161,7 @@ def setKnownDatatypes(newlist):
 
 def setKnownFor(newlist):
 	global ESCAPE
+	global RESTORING
 	if ESCAPE and not RESTORING:
 		global KNOWN_FOR_RMS
 		KNOWN_FOR_RMS = newlist
@@ -341,6 +347,9 @@ class StackFrame(Job):
 					setKnownVariables(knownVars[:self.depth])
 					setKnownDatatypes(knownTypes[:self.depth])
 					self.state = STATE_CLOSED
+					if self.name != 'if':
+						self.resolve()
+						self.parent.children.pop()
 				elif self.name == 'switch' and not token == 'case':
 					accepted = False
 				elif token in LOGIC:
@@ -428,11 +437,11 @@ class Logic(StackFrame):
 						if self.children[0].datatype != 'int':
 							error("Contents of " + self.name + " do not resolve to an integer! " + self.children[0].datatype)
 							accepted = False
-					elif self.children[0].datatype != 'bool':
-						error("Contents of " + self.name + " do not resolve to a boolean! " + self.children[0].datatype)
-						accepted = False
 					elif self.children[0].type == 'ASSIGNMENT':
 						error("Assignment operator in " + self.name + ". Use == instead.")
+						accepted = False
+					elif self.children[0].datatype != 'bool':
+						error("Contents of " + self.name + " do not resolve to a boolean! " + self.children[0].datatype)
 						accepted = False
 					if accepted:
 						self.children[0].resolve()
@@ -1091,6 +1100,7 @@ try:
 						ln = ln + 1
 			
 			BASE_JOB.resolve()
+			RMS_JOB.resolve()
 			# reformat the .c raw code
 			with open(FILE_1, 'w') as file_data_1:
 				for line in rewrite:

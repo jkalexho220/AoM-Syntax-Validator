@@ -253,6 +253,9 @@ class StackFrame(Job):
 					KNOWN_VARIABLES = KNOWN_VARIABLES[:self.depth]
 					KNOWN_TYPES = KNOWN_TYPES[:self.depth]
 					self.state = STATE_CLOSED
+					if self.name != 'if':
+						self.resolve()
+						self.parent.children.pop()
 				elif self.name == 'switch' and not token == 'case':
 					accepted = False
 				elif token in LOGIC:
@@ -340,11 +343,11 @@ class Logic(StackFrame):
 						if self.children[0].datatype != 'int':
 							error("Contents of " + self.name + " do not resolve to an integer! " + self.children[0].datatype)
 							accepted = False
-					elif self.children[0].datatype != 'bool':
-						error("Contents of " + self.name + " do not resolve to a boolean! " + self.children[0].datatype)
-						accepted = False
 					elif self.children[0].type == 'ASSIGNMENT':
 						error("Assignment operator in " + self.name + ". Use == instead.")
+						accepted = False
+					elif self.children[0].datatype != 'bool':
+						error("Contents of " + self.name + " do not resolve to a boolean! " + self.children[0].datatype)
 						accepted = False
 					if accepted:
 						self.children[0].resolve()
