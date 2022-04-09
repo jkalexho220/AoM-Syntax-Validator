@@ -722,10 +722,13 @@ class Literal(Mathable):
 			self.state = 0
 
 	def resolve(self):
-		super().resolve()
-		if self.datatype == 'vector':
-			if len(self.children) != 3:
-				error("vector literal must contain 3 numeric components but only found " + str(len(self.children)))
+		if not self.closed:
+			super().resolve()
+			if self.datatype == 'vector':
+				if len(self.children) != 3:
+					error("vector literal must contain 3 numeric components but only found " + str(len(self.children)))
+				self.closed = True
+				self.children.clear()
 
 	def accept(self, token):
 		accepted = True
@@ -849,10 +852,19 @@ class Arithmetic(Mathable):
 					if self.children[i].datatype in ['bool', 'void']:		
 						error("Cannot perform arithmetic operator " + self.name + " on " + self.children[i].name + " of type " + self.children[i].datatype)
 				
-				if self.datatype == 'string' and self.name in ['-', '/', '*']:
-					error("Cannot perform arithmetic operator " + self.name + " on a string!")
-				elif self.datatype != self.children[1].datatype and self.children[1].datatype == 'string':
-					error("Cannot add a string to a " + self.datatype)
+				if self.datatype == 'string':
+					if self.name in ['-', '/', '*']:
+						error("Cannot perform arithmetic operator " + self.name + " on a string!")
+				elif self.datatype != self.children[1].datatype:
+					if self.children[1].datatype == 'string':
+						error("Cannot add a string to a " + self.datatype)
+					if self.children[0].datatype == 'vector':
+						if self.children[1].datatype not in ['int', 'float', 'vector']:
+							error("Cannot perform arithmetic operator " + self.name + " from a vector to a " + self.children[1].datatype)
+						elif self.name in ['+', '-']:
+							error("Cannot perform arithmetic operator " + self.name + " from a vector to a " + self.children[1].datatype)
+					elif self.children[1].datatype == 'vector':
+						error("Cannot perform arithmetic operator " + self.name + " from a " + self.datatype + " to a vector")
 
 				self.name = self.datatype
 				self.children = []
