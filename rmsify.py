@@ -749,6 +749,8 @@ class Literal(Mathable):
 						accepted = self.children[-1].type == 'LITERAL' and self.children[-1].datatype in ['int', 'float']
 						if not accepted:
 							error("Vector literals can only contain literal integers or floats. Variables are not allowed.")
+					else:
+						accepted = False
 		return accepted
 
 
