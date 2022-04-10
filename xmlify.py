@@ -871,8 +871,6 @@ def removeStrings(line):
 				continue
 		if not isString or token == '"':
 			retline = retline + token
-	if "//" in retline:
-		retline = retline[:retline.find("//")]
 	return retline
 
 print("Reading Command Viewer")
@@ -921,6 +919,8 @@ try:
 					# Rewrite history
 					reline = line.strip()
 					nostrings = removeStrings(reline)
+					if "//" in nostrings:
+						nostrings = nostrings[:nostrings.find("//")]
 					if '}' in nostrings:
 						thedepth = thedepth - 1
 					reline = "\t" * thedepth + reline
@@ -932,7 +932,7 @@ try:
 					bcount = bcount + nostrings.count('{') - nostrings.count('}')
 					
 					if not line.isspace():
-						if ('/*' in line):
+						if ('/*' in nostrings):
 							comment = True
 
 						if not comment:
@@ -962,7 +962,7 @@ try:
 											BASE_JOB.debug()
 							
 							templine = reline.strip()
-							if '//' in templine:
+							if '//' in nostrings:
 								templine = templine[:templine.find('//')].strip()
 
 							# Obsolete Sanity Checks
@@ -979,7 +979,7 @@ try:
 									file_data_2.write('<Command><![CDATA[' + line.rstrip() + ']]></Command>\n')
 								else:
 									file_data_2.write('<Command>' + line.rstrip() + '</Command>\n')
-						if ('*/' in line):
+						if ('*/' in nostrings):
 							comment = False
 					else:
 						file_data_2.write('\n')

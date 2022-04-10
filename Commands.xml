@@ -3521,7 +3521,7 @@ Returns the culture name for the given culture.&#xD;
         <parameters type="string" name="effectType"/>
         <javadoc>Add an effect from the trigger(2)\typetest.xml file to the random map.</javadoc>
     </method>
-    <method return="void" name="rmCreateTrigger">
+    <method return="int" name="rmCreateTrigger">
         <parameters type="string" name="triggerName"/>
         <javadoc>&#xD;
 Create a trigger to add to this random map.&#xD;
