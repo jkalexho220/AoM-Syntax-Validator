@@ -1058,7 +1058,7 @@ try:
 					bcount = bcount + nostrings.count('{') - nostrings.count('}')
 					
 					if not line.isspace():
-						if ('/*' in line):
+						if ('/*' in nostrings):
 							comment = True
 
 						if not comment:
@@ -1113,7 +1113,7 @@ try:
 										file_data_2.write('code("' + templine.replace('"', '\\"') + '");\n')
 								else:
 									RESTORING = False
-						if ('*/' in line):
+						if ('*/' in nostrings):
 							comment = False
 					else:
 						file_data_2.write('\n')
