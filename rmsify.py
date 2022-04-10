@@ -38,8 +38,8 @@ files = ['example.c']
 additional = []
 if len(rmsFunc) > 0:
 	additional.append(rmsFunc)
-if len(rmsMain) >0:
-	additional.append(rmsMain)
+
+additional.append(rmsMain)
 
 files = additional + files
 
@@ -994,8 +994,6 @@ def removeStrings(line):
 			inString = not inString
 		if not inString or token == '"':
 			retline = retline + token
-	if "//" in retline:
-		retline = retline[:retline.find("//")]
 	return retline
 
 print("Reading Command Viewer")
@@ -1046,6 +1044,8 @@ try:
 					# Rewrite history
 					reline = line.strip()
 					nostrings = removeStrings(reline)
+					if "//" in nostrings:
+						nostrings = nostrings[:nostrings.find("//")]
 					if '}' in nostrings:
 						thedepth = thedepth - 1
 					if not RESTORING:
@@ -1095,7 +1095,7 @@ try:
 													BASE_JOB.debug()
 								
 								templine = reline.strip()
-								if '//' in templine:
+								if '//' in removeStrings(templine):
 									templine = templine[:templine.find('//')].strip()
 
 								if (len(templine) > 120):
