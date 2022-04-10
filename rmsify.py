@@ -1093,7 +1093,7 @@ try:
 									print("Missing semicolon")
 									print("Line " + str(ln) + ":\n    " + line)
 
-								if not RESTORING:
+								if not RESTORING and len(templine) > 0:
 									# reWrite the line
 									if first or ESCAPE:
 										file_data_2.write(templine + '\n')

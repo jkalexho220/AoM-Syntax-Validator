@@ -974,10 +974,11 @@ try:
 								print("Line " + str(ln) + ":\n    " + line)
 
 							# reWrite the line
-							if '<' in line or '&' in line or '|' in line:
-								file_data_2.write('<Command><![CDATA[' + line.rstrip() + ']]></Command>\n')
-							else:
-								file_data_2.write('<Command>' + line.rstrip() + '</Command>\n')
+							if len(line) > 0:
+								if '<' in line or '&' in line or '|' in line:
+									file_data_2.write('<Command><![CDATA[' + line.rstrip() + ']]></Command>\n')
+								else:
+									file_data_2.write('<Command>' + line.rstrip() + '</Command>\n')
 						if ('*/' in line):
 							comment = False
 					else:
