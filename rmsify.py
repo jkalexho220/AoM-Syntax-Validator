@@ -13,8 +13,10 @@ import sys
 # You can add -v to the command to see verbose output, though this will not be helpful to most people.
 
 # The syntax validator will stop after encountering the first error. After fixing that error, additional ones may be reported.
-# In files[], the very first file contains all the rms code in void main() that EXCLUDES trigger code.
-# The other files after the first file are parsed as raw trigger code.
+
+# rmsFunc file contains RMS functions only [OPTIONAL]
+# rmsMain file contains only the RMS code inside of void main(void) {}
+
 # If you wish to inject RMS code between the lines of trigger code, use the % character to escape trigger code and another % to return to trigger code.
 # The % characters must be placed on their own lines.
 # While in RMS code, you can write code(""); to create trigger code the old-fashioned nottud way.
@@ -26,11 +28,20 @@ import sys
 ####### CUSTOMIZE THESE #######
 ###############################
 FILENAME = 'my file.xs'
+rmsFunc = ''
+rmsMain = 'main.c'
 files = ['example.c']
 
 #########################################
 ####### CODE BELOW (DO NOT TOUCH) #######
 #########################################
+additional = []
+if len(rmsFunc) > 0:
+	additional.append(rmsFunc)
+if len(rmsMain) >0:
+	additional.append(rmsMain)
+
+files = additional + files
 
 VERBOSE = False
 for t in sys.argv:
@@ -1008,14 +1019,15 @@ print("rmsification start!")
 ln = 1
 FILE_1 = None
 comment = False
-first = True
+ESCAPE = True
 try:
 	with open('XS/' + FILENAME, 'w') as file_data_2:
-		file_data_2.write('void code(string xs="") {\n')
-		file_data_2.write('rmAddTriggerEffect("SetIdleProcessing");\n')
-		file_data_2.write('rmSetTriggerEffectParam("IdleProc",");*/"+xs+"/*");}\n')
-		file_data_2.write('void main(void) {\n')
 		for f in files:
+			if f == rmsMain:
+				file_data_2.write('void code(string xs="") {\n')
+				file_data_2.write('rmAddTriggerEffect("SetIdleProcessing");\n')
+				file_data_2.write('rmSetTriggerEffectParam("IdleProc",");*/"+xs+"/*");}\n')
+				file_data_2.write('void main(void) {\n')
 			FILE_1 = f
 			ln = 1
 			pcount = 0 # parenthesis
@@ -1095,7 +1107,7 @@ try:
 
 								if not RESTORING and len(templine) > 0:
 									# reWrite the line
-									if first or ESCAPE:
+									if ESCAPE:
 										file_data_2.write(templine + '\n')
 									else:
 										file_data_2.write('code("' + templine.replace('"', '\\"') + '");\n')
@@ -1127,7 +1139,7 @@ try:
 				print("ERROR: Extra close brackets detected!\n")
 			elif bcount > 0:
 				print("ERROR: Missing close brackets detected!\n")
-			if first:
+			if f == rmsMain:
 				file_data_2.write('rmSwitchToTrigger(rmCreateTrigger("zenowashere"));\n')
 				file_data_2.write('rmSetTriggerPriority(4);\n')
 				file_data_2.write('rmSetTriggerActive(false);\n')
@@ -1135,7 +1147,6 @@ try:
 				file_data_2.write('rmSetTriggerRunImmediately(true);\n')
 				file_data_2.write('rmAddTriggerEffect("SetIdleProcessing");\n')
 				file_data_2.write('rmSetTriggerEffectParam("IdleProc",");}}/*");\n')
-				first = False
 				ESCAPE = False
 		file_data_2.write('rmAddTriggerEffect("SetIdleProcessing");\n')
 		file_data_2.write('rmSetTriggerEffectParam("IdleProc",");*/rule _zenowashereagain inactive {if(true){xsDisableSelf();//");\n')

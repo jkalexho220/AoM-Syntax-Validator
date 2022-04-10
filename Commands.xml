@@ -1925,6 +1925,7 @@ You'll probably want to use some other echo instead.&#xD;
         <parameters type="int" name="defID"/>
         <parameters type="int" name="playerID"/>
         <parameters type="int" name="areaID"/>
+        <parameters type="int" name="count"/>
         <javadoc>Place object definition for the player at the given area's location.</javadoc>
     </method>
     <method return="void" name="rmPlaceObjectDefAtLoc">
