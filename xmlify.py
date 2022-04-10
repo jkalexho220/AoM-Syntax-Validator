@@ -921,7 +921,8 @@ try:
 				while line:
 					# Rewrite history
 					reline = line.strip()
-					nostrings = removeStrings(reline)
+					stringless = removeStrings(reline)
+					nostrings = stringless
 					if "//" in nostrings:
 						nostrings = nostrings[:nostrings.find("//")]
 					if '}' in nostrings:
@@ -965,7 +966,7 @@ try:
 											BASE_JOB.debug()
 							
 							templine = reline.strip()
-							if '//' in nostrings:
+							if '//' in stringless:
 								templine = templine[:templine.find('//')].strip()
 
 							# Obsolete Sanity Checks

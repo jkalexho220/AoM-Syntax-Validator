@@ -43,13 +43,19 @@ additional.append(rmsMain)
 
 files = additional + files
 
+OUTPUT_COMMENTS = False
+OUTPUT_TABS = False
 REFORMAT = False
 VERBOSE = False
 for t in sys.argv:
 	if t == '-v':
 		VERBOSE = True
-	if t == '-r':
+	elif t == '-r':
 		REFORMAT = True
+	elif t == '-t':
+		OUTPUT_TABS = True
+	elif t == '-c':
+		OUTPUT_COMMENTS = True
 
 # Stack Frame states
 STATE_NEED_NAME = 0
@@ -1046,7 +1052,8 @@ try:
 				while line:
 					# Rewrite history
 					reline = line.strip()
-					nostrings = removeStrings(reline)
+					stringless = removeStrings(reline)
+					nostrings = stringless
 					if "//" in nostrings:
 						nostrings = nostrings[:nostrings.find("//")]
 					if '}' in nostrings:
@@ -1054,11 +1061,6 @@ try:
 					if not RESTORING:
 						reline = "\t" * thedepth + reline
 						rewrite.append(reline)
-					if '{' in nostrings:
-						thedepth = thedepth + 1
-					thedepth = thedepth + nostrings.count('(') - nostrings.count(')')
-					pcount = pcount + nostrings.count('(') - nostrings.count(')')
-					bcount = bcount + nostrings.count('{') - nostrings.count('}')
 					
 					if not line.isspace():
 						if ('/*' in nostrings):
@@ -1098,7 +1100,7 @@ try:
 													BASE_JOB.debug()
 								
 								templine = reline.strip()
-								if '//' in removeStrings(templine):
+								if '//' in stringless:
 									templine = templine[:templine.find('//')].strip()
 
 								if (len(templine) > 120):
@@ -1110,17 +1112,29 @@ try:
 
 								if not RESTORING and len(templine) > 0:
 									# reWrite the line
+									tabs = ''
+									if OUTPUT_TABS:
+										tabs = "\t" * thedepth
 									if ESCAPE:
-										file_data_2.write(templine + '\n')
+										file_data_2.write(tabs + templine + '\n')
 									else:
-										file_data_2.write('code("' + templine.replace('"', '\\"') + '");\n')
+										file_data_2.write(tabs + 'code("' + templine.replace('"', '\\"') + '");\n')
 								else:
 									RESTORING = False
+						
+						elif OUTPUT_COMMENTS and not RESTORING:
+							file_data_2.write(reline + '\n')
+
 						if ('*/' in nostrings):
 							comment = False
 					else:
 						file_data_2.write('\n')
 
+					if '{' in nostrings:
+						thedepth = thedepth + 1
+					thedepth = thedepth + nostrings.count('(') - nostrings.count(')')
+					pcount = pcount + nostrings.count('(') - nostrings.count(')')
+					bcount = bcount + nostrings.count('{') - nostrings.count('}')
 					if ESCAPE and 'code("' in line:
 						line = restoreCode(line)
 						RESTORING = True
