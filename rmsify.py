@@ -43,10 +43,13 @@ additional.append(rmsMain)
 
 files = additional + files
 
+REFORMAT = False
 VERBOSE = False
 for t in sys.argv:
 	if t == '-v':
 		VERBOSE = True
+	if t == '-r':
+		REFORMAT = True
 
 # Stack Frame states
 STATE_NEED_NAME = 0
@@ -1128,9 +1131,10 @@ try:
 			BASE_JOB.resolve()
 			RMS_JOB.resolve()
 			# reformat the .c raw code
-			with open(FILE_1, 'w') as file_data_1:
-				for line in rewrite:
-					file_data_1.write(line + '\n')
+			if REFORMAT:
+				with open(FILE_1, 'w') as file_data_1:
+					for line in rewrite:
+						file_data_1.write(line + '\n')
 			if pcount < 0:
 				print("ERROR: Extra close parenthesis detected!\n")
 			elif pcount > 0:
