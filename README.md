@@ -4,7 +4,7 @@ A python command-line tool that formats raw .xs code into code that Age of Mytho
 ## Uses
 There are two python files: **rmsify.py** and **xmlify.py**. **rmsify.py** is used to generate Random Map Scripts. **xmlify.py** is used to generate trigger code that can be used in custom scenarios.
 
-These files will read raw .xs code and perform syntax validation on it. Then it will produce an output file that AoM understands, depending on what you are trying to make. They will also format your code to have proper indentation.
+These files will read raw .xs code and perform syntax validation on it. Then it will produce an output file that AoM understands, depending on what you are trying to make.
 
 It is important to note that the syntax validator only finds one error at a time. After it finds one error, you must fix that error before the validator can continue checking the rest of your code.
 
@@ -34,3 +34,9 @@ Once you are done editing your code, you can run rmsify.py by navigating to your
 > python rmsify.py
 
 This will produce a .xs file in your XS folder, which you can then copy to your rm2 folder and run as a random map script. (Note that a random map script requires two files: a .xml and .xs file. Their names must also match. This program only produces the .xs file. You can open another random map script's .xml file to see how it is written)
+
+There are also several command-line options that you can add:
+**-t** (Tabs) The output file will also contain your tab indentation and whitespace
+**-r** (Reformat) Your code will be automatically modified to have proper indentation
+**-c** (Comments) Multi-line comments will be included in the output file (but not single-line comments)
+**-v** (Verbose) Not very useful unless you're me trying to debug the python files. This will print out the code in real-time revealing how it's being parsed by the program.
