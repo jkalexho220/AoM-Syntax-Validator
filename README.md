@@ -25,8 +25,10 @@ This will produce a .xml file containing a single trigger effect that has all yo
 To setup rmsify.py, create a new folder for your project. Move the rmsify.py and the Commands.xml files to this folder. Then create a folder named XS under your folder. Next, open up rmsify.py and modify the FILENAME and FILES fields.
 * FILENAME: The name of the .xs output file
 * FILES: The list of files, _in order_ that will be parsed. These are plaintext files, though saving them as .c can help your IDE understand and highlight syntax more accurately.
+* rmsFunc: The file that contains declarations for custom RMS function.
+* rmsMain: The file that contains RMS code that exists in void main() of the RMS.
 
-It is important to note that the very first file in the list is treated in a special manner. This file should contain only the rms code inside of the _void main()_ function and nothing else. Subsequent files should contain trigger code only. However, there is a way to inject RMS code into your trigger code. To do so, use a % symbol on a new line to exit trigger code and enter RMS code. When you are done with RMS code injection, use another % symbol on its own line to re-enter trigger code.
+Files in the FILES list should contain trigger code only. However, there is a way to inject RMS code into your trigger code. To do so, use a % symbol on a new line to exit trigger code and enter RMS code. When you are done with RMS code injection, use another % symbol on its own line to re-enter trigger code.
 
 Once you are done editing your code, you can run rmsify.py by navigating to your folder with a command line tool and running the following command:
 > python rmsify.py
