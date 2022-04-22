@@ -36,7 +36,7 @@ Once you are done editing your code, you can run rmsify.py by navigating to your
 This will produce a .xs file in your XS folder, which you can then copy to your rm2 folder and run as a random map script. (Note that a random map script requires two files: a .xml and .xs file. Their names must also match. This program only produces the .xs file. You can open another random map script's .xml file to see how it is written)
 
 There are also several command-line options that you can add:
-**-t** (Tabs) The output file will also contain your tab indentation and whitespace
-**-r** (Reformat) Your code will be automatically modified to have proper indentation
-**-c** (Comments) Multi-line comments will be included in the output file (but not single-line comments)
-**-v** (Verbose) Not very useful unless you're me trying to debug the python files. This will print out the code in real-time revealing how it's being parsed by the program.
+* **-t** (Tabs) The output file will also contain your tab indentation and whitespace
+* **-r** (Reformat) Your code will be automatically modified to have proper indentation
+* **-c** (Comments) Multi-line comments will be included in the output file (but not single-line comments)
+* **-v** (Verbose) Not very useful unless you're me trying to debug the python files. This will print out the code in real-time revealing how it's being parsed by the program.
