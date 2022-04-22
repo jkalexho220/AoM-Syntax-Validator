@@ -2926,82 +2926,103 @@ When called, the player is set to be victorious on the local machine.&#xD;
         <javadoc>Creates a unit query, returns the query ID.</javadoc>
     </method>
     <method return="bool" name="kbUnitQueryResetData">
+        <parameters type="int" name="queryID"/>
         <javadoc>Resets the given unit query data AND results.</javadoc>
     </method>
     <method return="bool" name="kbUnitQueryResetResults">
+        <parameters type="int" name="queryID"/>
         <javadoc>Resets the given unit query results.</javadoc>
     </method>
     <method return="bool" name="kbUnitQueryDestroy">
+        <parameters type="int" name="queryID"/>
         <javadoc>Destroys the given unit query.</javadoc>
     </method>
     <method return="int" name="kbUnitQueryNumberResults">
+        <parameters type="int" name="queryID"/>
         <javadoc>Returns the number of results in the current query.</javadoc>
     </method>
     <method return="int" name="kbUnitQueryGetResult">
+        <parameters type="int" name="queryID"/>
         <parameters type="int" name="index"/>
         <javadoc>Returns the UnitID of the index'th result in the current query.</javadoc>
     </method>
     <method return="bool" name="kbUnitQuerySetPlayerID">
+        <parameters type="int" name="queryID"/>
         <parameters type="int" name="playerID"/>
         <parameters type="bool" name="resetQueryData"/>
         <javadoc>Sets query data.</javadoc>
     </method>
     <method return="bool" name="kbUnitQuerySetPlayerRelation">
+        <parameters type="int" name="queryID"/>
         <parameters type="int" name="playerRelation"/>
         <javadoc>Sets query data.</javadoc>
     </method>
     <method return="bool" name="kbUnitQuerySetUnitType">
+        <parameters type="int" name="queryID"/>
         <parameters type="int" name="unitTypeID"/>
         <javadoc>Sets query data.</javadoc>
     </method>
     <method return="bool" name="kbUnitQuerySetActionType">
+        <parameters type="int" name="queryID"/>
         <parameters type="int" name="actionTypeID"/>
         <javadoc>Sets query data.</javadoc>
     </method>
     <method return="bool" name="kbUnitQuerySetState">
+        <parameters type="int" name="queryID"/>
         <parameters type="int" name="state"/>
         <javadoc>Sets query data.</javadoc>
     </method>
     <method return="bool" name="kbUnitQuerySetPosition">
+        <parameters type="int" name="queryID"/>
         <parameters type="vector" name="v"/>
         <javadoc>Sets query data.</javadoc>
     </method>
     <method return="bool" name="kbUnitQuerySetMaximumDistance">
+        <parameters type="int" name="queryID"/>
         <parameters type="float" name="distance"/>
         <javadoc>Sets query data.</javadoc>
     </method>
     <method return="bool" name="kbUnitQuerySetAscendingSort">
+        <parameters type="int" name="queryID"/>
         <parameters type="bool" name="ascending"/>
         <javadoc>If ascending is true, results are sorted in ascending distance order from the query position.</javadoc>
     </method>
     <method return="bool" name="kbUnitQuerySetBaseID">
+        <parameters type="int" name="queryID"/>
         <parameters type="int" name="baseID"/>
         <javadoc>Sets query data.</javadoc>
     </method>
     <method return="bool" name="kbUnitQuerySetAreaID">
+        <parameters type="int" name="queryID"/>
         <parameters type="int" name="areaID"/>
         <javadoc>Sets query data.</javadoc>
     </method>
     <method return="bool" name="kbUnitQuerySetAreaGroupID">
+        <parameters type="int" name="queryID"/>
         <parameters type="int" name="areaGroupID"/>
         <javadoc>Sets query data.</javadoc>
     </method>
     <method return="bool" name="kbUnitQuerySetArmyID">
+        <parameters type="int" name="queryID"/>
         <parameters type="int" name="armyID"/>
         <javadoc>Sets query data.</javadoc>
     </method>
     <method return="bool" name="kbUnitQuerySetSeeableOnly">
+        <parameters type="int" name="queryID"/>
         <parameters type="bool" name="seeableOnly"/>
         <javadoc>Sets query data.</javadoc>
     </method>
     <method return="int" name="kbUnitQueryExecute">
+        <parameters type="int" name="queryID"/>
         <javadoc>Executes the current query; returns number of results.</javadoc>
     </method>
     <method return="int" name="kbUnitQueryExecuteOnQuery">
+        <parameters type="int" name="queryID"/>
         <parameters type="int" name="previousQueryID"/>
         <javadoc>Executes the current query on the previous query's results; returns the new number of results.</javadoc>
     </method>
     <method return="int" name="kbUnitQueryExecuteOnQueryByName">
+        <parameters type="int" name="queryID"/>
         <parameters type="string" name="previousQueryName"/>
         <javadoc>Executes the current query on the previous query's results; returns the new number of results.</javadoc>
     </method>
@@ -3853,7 +3874,7 @@ so an OoS is likely to occur if 2 players choose different options.</javadoc>
     <method return="void" name="trShowWinLose">
         <parameters type="string" name="text"/>
         <parameters type="string" name="soundfile"/>
-        <parameters type="float" name="volume"/>
+        <parameters type="string" name="volume"/>
         <javadoc>Shows a win/lose message and plays a sound.</javadoc>
     </method>
     <method return="void" name="trStartGameRecord">
