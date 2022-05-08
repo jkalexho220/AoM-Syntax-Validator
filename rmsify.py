@@ -35,13 +35,6 @@ files = ['example.c']
 #########################################
 ####### CODE BELOW (DO NOT TOUCH) #######
 #########################################
-additional = []
-if len(rmsFunc) > 0:
-	additional.append(rmsFunc)
-
-additional.append(rmsMain)
-
-files = additional + files
 
 OUTPUT_COMMENTS = False
 OUTPUT_TABS = False
@@ -1024,180 +1017,193 @@ with open('Commands.xml', 'r') as fd:
 print("rmsification start!")
 
 ln = 1
-FILE_1 = None
 comment = False
 ESCAPE = True
+
+def parseFile(fn):
+	global ESCAPE
+	global RESTORING
+	global comment
+	ln = 1
+	pcount = 0 # parenthesis
+	bcount = 0 # brackets
+	sys.stdout.flush()
+	print("parsing " + fn + "...")
+	rewrite = []
+	thedepth = 0
+	BASE_JOB = BaseFrame()
+	RMS_JOB = BaseFrame()
+	RMS_JOB.children.append(StackFrame('rms',RMS_JOB))
+	RMS_JOB.children[0].state = STATE_IN_BRACKETS
+	with open(fn, 'r') as file_data_1:
+		line = file_data_1.readline()
+		while line:
+			# Rewrite history
+			reline = line.strip()
+			stringless = removeStrings(reline)
+			nostrings = stringless
+			if "//" in nostrings:
+				nostrings = nostrings[:nostrings.find("//")]
+			if '}' in nostrings:
+				thedepth = thedepth - 1
+			if not RESTORING:
+				reline = "\t" * thedepth + reline
+				rewrite.append(reline)
+			
+			if not line.isspace():
+				if ('/*' in nostrings):
+					comment = True
+
+				if not comment:
+					if ('%' in line):
+						ESCAPE = not ESCAPE
+					else:
+						if not ERRORED:
+							templine = nostrings
+							for s in SYMBOLS:
+								for n in s:
+									if n == '-':
+										templine = list(templine)
+										for i in range(len(templine)-1):
+											if templine[i] == '-':
+												if templine[i+1].isnumeric() and templine[i-1] in [' ', '(', ',']:
+													templine[i] = ' -'
+												else:
+													templine[i] = ' - '
+										templine = "".join(templine)
+									else:
+										templine = templine.replace(n, ' ' + n + ' ')
+							templine = templine.replace('=', ' = ').replace(' =  = ', ' == ').replace('! = ', ' != ').replace(' >  = ', ' >= ').replace(' <  = ', '<=').replace('minInterval ', 'minInterval').replace('maxInterval ', 'maxInterval')
+							tokens = [token for token in templine.split(' ') if token != '']
+
+							for token in tokens:
+								if not token in IGNORE:
+									if ESCAPE and not RESTORING:
+										RMS_JOB.accept(token)
+										if VERBOSE and not ERRORED:
+											RMS_JOB.debug()
+									else:
+										BASE_JOB.accept(token)
+										if VERBOSE and not ERRORED:
+											BASE_JOB.debug()
+						
+						templine = reline.strip()
+						if '//' in stringless:
+							templine = templine[:templine.find('//')].strip()
+
+						if len(templine) > 0 and not (templine[-1] == ';' or templine[-1] == '{' or templine[-1] == '}' or templine[-2:] == '||' or templine[-2:] == '&&' or templine[-1] == ',' or templine[-4:] == 'else' or templine[0:4] == 'rule' or templine == 'highFrequency' or templine == 'runImmediately' or templine[-1] == '/' or templine[-6:] == 'active' or templine[0:11] == 'minInterval' or templine[0:4] == 'case' or templine[0:7] == 'switch(' or templine[-1] == '%'):
+							print("Missing semicolon")
+							print("Line " + str(ln) + ":\n    " + line)
+
+						if len(templine) > 120:
+							if ESCAPE:
+								print("Line length greater than 120! Length is " + str(len(templine)))
+								print("Line " + str(ln) + ":\n    " + line)
+							else:
+								templines = []
+								while (len(templine) > 120):
+									# attempt to separate the line into multiple
+									inString = False
+									ignoreNext = False
+									split = 0
+									for index in range(118):
+										if ignoreNext:
+											ignoreNext = False
+										elif templine[index] == '"':
+											inString = not inString
+										elif not inString:
+											if templine[index] == ',':
+												split = index + 1
+											elif templine[index:index+2] in ['&&', '||']:
+												split = index + 2
+										elif templine[index] == '\\':
+											ignoreNext = True
+									
+									if split > 0:
+										templines.append(templine[:split])
+										templine = templine[split:].strip()
+									else:
+										print("Line length greater than 120 and could not find a delimiter to split! Length is " + str(len(templine)))
+										print("Line " + str(ln) + ":\n    " + line)
+										break
+								for l in templines:
+									file_data_2.write(tabs + 'code("' + l.replace('"', '\\"') + '");\n')	
+
+
+						if not RESTORING and len(templine) > 0:
+							# reWrite the line
+							tabs = ''
+							if OUTPUT_TABS:
+								tabs = "\t" * thedepth
+							if ESCAPE:
+								file_data_2.write(tabs + templine + '\n')
+							else:
+								file_data_2.write(tabs + 'code("' + templine.replace('"', '\\"') + '");\n')
+						else:
+							RESTORING = False
+				
+				elif OUTPUT_COMMENTS and not RESTORING:
+					file_data_2.write(reline + '\n')
+
+				if ('*/' in nostrings):
+					comment = False
+			elif OUTPUT_TABS:
+				file_data_2.write('\n')
+
+			if '{' in nostrings:
+				thedepth = thedepth + 1
+			thedepth = thedepth + nostrings.count('(') - nostrings.count(')')
+			pcount = pcount + nostrings.count('(') - nostrings.count(')')
+			bcount = bcount + nostrings.count('{') - nostrings.count('}')
+			if ESCAPE and 'code("' in line:
+				line = restoreCode(line)
+				RESTORING = True
+			else:
+				line = file_data_1.readline()
+				ln = ln + 1
+	
+	BASE_JOB.resolve()
+	RMS_JOB.resolve()
+	# reformat the .c raw code
+	if REFORMAT:
+		with open(fn, 'w') as file_data_1:
+			for line in rewrite:
+				file_data_1.write(line + '\n')
+	if pcount < 0:
+		print("ERROR: Extra close parenthesis detected!\n")
+	elif pcount > 0:
+		print("ERROR: Missing close parenthesis detected!\n")
+	if bcount < 0:
+		print("ERROR: Extra close brackets detected!\n")
+	elif bcount > 0:
+		print("ERROR: Missing close brackets detected!\n")
+
 try:
 	with open('XS/' + FILENAME, 'w') as file_data_2:
+		file_data_2.write('void code(string xs="") {\n')
+		file_data_2.write('rmAddTriggerEffect("SetIdleProcessing");\n')
+		file_data_2.write('rmSetTriggerEffectParam("IdleProc",");*/"+xs+"/*");}\n')
+		ESCAPE = True
+		if (len(rmsFunc) > 0):
+			parseFile(rmsFunc)
+		ESCAPE = False
 		for f in files:
-			if f == rmsMain:
-				file_data_2.write('void code(string xs="") {\n')
-				file_data_2.write('rmAddTriggerEffect("SetIdleProcessing");\n')
-				file_data_2.write('rmSetTriggerEffectParam("IdleProc",");*/"+xs+"/*");}\n')
-				file_data_2.write('void main(void) {\n')
-			FILE_1 = f
-			ln = 1
-			pcount = 0 # parenthesis
-			bcount = 0 # brackets
-			sys.stdout.flush()
-			print("parsing " + FILE_1 + "...")
-			rewrite = []
-			thedepth = 0
-			BASE_JOB = BaseFrame()
-			RMS_JOB = BaseFrame()
-			RMS_JOB.children.append(StackFrame('rms',RMS_JOB))
-			RMS_JOB.children[0].state = STATE_IN_BRACKETS
-			with open(FILE_1, 'r') as file_data_1:
-				line = file_data_1.readline()
-				while line:
-					# Rewrite history
-					reline = line.strip()
-					stringless = removeStrings(reline)
-					nostrings = stringless
-					if "//" in nostrings:
-						nostrings = nostrings[:nostrings.find("//")]
-					if '}' in nostrings:
-						thedepth = thedepth - 1
-					if not RESTORING:
-						reline = "\t" * thedepth + reline
-						rewrite.append(reline)
-					
-					if not line.isspace():
-						if ('/*' in nostrings):
-							comment = True
+			file_data_2.write('void ' + f[:f.find('.')] + '() {\n')
+			parseFile(f)
+			file_data_2.write('}\n')
 
-						if not comment:
-							if ('%' in line):
-								ESCAPE = not ESCAPE
-							else:
-								if not ERRORED:
-									templine = nostrings
-									for s in SYMBOLS:
-										for n in s:
-											if n == '-':
-												templine = list(templine)
-												for i in range(len(templine)-1):
-													if templine[i] == '-':
-														if templine[i+1].isnumeric() and templine[i-1] in [' ', '(', ',']:
-															templine[i] = ' -'
-														else:
-															templine[i] = ' - '
-												templine = "".join(templine)
-											else:
-												templine = templine.replace(n, ' ' + n + ' ')
-									templine = templine.replace('=', ' = ').replace(' =  = ', ' == ').replace('! = ', ' != ').replace(' >  = ', ' >= ').replace(' <  = ', '<=').replace('minInterval ', 'minInterval').replace('maxInterval ', 'maxInterval')
-									tokens = [token for token in templine.split(' ') if token != '']
-
-									for token in tokens:
-										if not token in IGNORE:
-											if ESCAPE and not RESTORING:
-												RMS_JOB.accept(token)
-												if VERBOSE and not ERRORED:
-													RMS_JOB.debug()
-											else:
-												BASE_JOB.accept(token)
-												if VERBOSE and not ERRORED:
-													BASE_JOB.debug()
-								
-								templine = reline.strip()
-								if '//' in stringless:
-									templine = templine[:templine.find('//')].strip()
-
-								if len(templine) > 0 and not (templine[-1] == ';' or templine[-1] == '{' or templine[-1] == '}' or templine[-2:] == '||' or templine[-2:] == '&&' or templine[-1] == ',' or templine[-4:] == 'else' or templine[0:4] == 'rule' or templine == 'highFrequency' or templine == 'runImmediately' or templine[-1] == '/' or templine[-6:] == 'active' or templine[0:11] == 'minInterval' or templine[0:4] == 'case' or templine[0:7] == 'switch(' or templine[-1] == '%'):
-									print("Missing semicolon")
-									print("Line " + str(ln) + ":\n    " + line)
-
-								if len(templine) > 120:
-									if ESCAPE:
-										print("Line length greater than 120! Length is " + str(len(templine)))
-										print("Line " + str(ln) + ":\n    " + line)
-									else:
-										templines = []
-										while (len(templine) > 120):
-											# attempt to separate the line into multiple
-											inString = False
-											ignoreNext = False
-											split = 0
-											for index in range(118):
-												if ignoreNext:
-													ignoreNext = False
-												elif templine[index] == '"':
-													inString = not inString
-												elif not inString:
-													if templine[index] == ',':
-														split = index + 1
-													elif templine[index:index+2] in ['&&', '||']:
-														split = index + 2
-												elif templine[index] == '\\':
-													ignoreNext = True
-											
-											if split > 0:
-												templines.append(templine[:split])
-												templine = templine[split:].strip()
-											else:
-												print("Line length greater than 120 and could not find a delimiter to split! Length is " + str(len(templine)))
-												print("Line " + str(ln) + ":\n    " + line)
-												break
-										for l in templines:
-											file_data_2.write(tabs + 'code("' + l.replace('"', '\\"') + '");\n')	
-
-
-								if not RESTORING and len(templine) > 0:
-									# reWrite the line
-									tabs = ''
-									if OUTPUT_TABS:
-										tabs = "\t" * thedepth
-									if ESCAPE:
-										file_data_2.write(tabs + templine + '\n')
-									else:
-										file_data_2.write(tabs + 'code("' + templine.replace('"', '\\"') + '");\n')
-								else:
-									RESTORING = False
-						
-						elif OUTPUT_COMMENTS and not RESTORING:
-							file_data_2.write(reline + '\n')
-
-						if ('*/' in nostrings):
-							comment = False
-					else:
-						file_data_2.write('\n')
-
-					if '{' in nostrings:
-						thedepth = thedepth + 1
-					thedepth = thedepth + nostrings.count('(') - nostrings.count(')')
-					pcount = pcount + nostrings.count('(') - nostrings.count(')')
-					bcount = bcount + nostrings.count('{') - nostrings.count('}')
-					if ESCAPE and 'code("' in line:
-						line = restoreCode(line)
-						RESTORING = True
-					else:
-						line = file_data_1.readline()
-						ln = ln + 1
-			
-			BASE_JOB.resolve()
-			RMS_JOB.resolve()
-			# reformat the .c raw code
-			if REFORMAT:
-				with open(FILE_1, 'w') as file_data_1:
-					for line in rewrite:
-						file_data_1.write(line + '\n')
-			if pcount < 0:
-				print("ERROR: Extra close parenthesis detected!\n")
-			elif pcount > 0:
-				print("ERROR: Missing close parenthesis detected!\n")
-			if bcount < 0:
-				print("ERROR: Extra close brackets detected!\n")
-			elif bcount > 0:
-				print("ERROR: Missing close brackets detected!\n")
-			if f == rmsMain:
-				file_data_2.write('rmSwitchToTrigger(rmCreateTrigger("zenowashere"));\n')
-				file_data_2.write('rmSetTriggerPriority(4);\n')
-				file_data_2.write('rmSetTriggerActive(false);\n')
-				file_data_2.write('rmSetTriggerLoop(false);\n')
-				file_data_2.write('rmSetTriggerRunImmediately(true);\n')
-				file_data_2.write('rmAddTriggerEffect("SetIdleProcessing");\n')
-				file_data_2.write('rmSetTriggerEffectParam("IdleProc",");}}/*");\n')
-				ESCAPE = False
+		ESCAPE = True
+		file_data_2.write('void main(void) {\n')
+		parseFile(rmsMain)
+		file_data_2.write('rmSwitchToTrigger(rmCreateTrigger("zenowashere"));\n')
+		file_data_2.write('rmSetTriggerPriority(4);\n')
+		file_data_2.write('rmSetTriggerActive(false);\n')
+		file_data_2.write('rmSetTriggerLoop(false);\n')
+		file_data_2.write('rmSetTriggerRunImmediately(true);\n')
+		file_data_2.write('rmAddTriggerEffect("SetIdleProcessing");\n')
+		file_data_2.write('rmSetTriggerEffectParam("IdleProc",");}}/*");\n')
+		for f in files:
+			file_data_2.write(f[:f.find('.')] + '();\n')
 		file_data_2.write('rmAddTriggerEffect("SetIdleProcessing");\n')
 		file_data_2.write('rmSetTriggerEffectParam("IdleProc",");*/rule _zenowashereagain inactive {if(true){xsDisableSelf();//");\n')
 		file_data_2.write('rmSetStatusText("", 0.99);')
