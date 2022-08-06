@@ -389,9 +389,9 @@ class Logic(StackFrame):
 			elif self.state == STATE_IN_BRACKETS:
 				if token in ['break', 'continue']:
 					searchState = self
-					while searchState.name not in ['for', 'while'] and searchState.parent:
+					while searchState.name not in ['for', 'while', 'case'] and searchState.parent:
 						searchState = searchState.parent
-					if searchState.name in ['for','while']:
+					if searchState.name in ['for','while', 'case']:
 						self.children.append(Literal('0',self,'int'))
 						self.children[-1].closed = True
 						self.children[-1].type = 'BREAK'
