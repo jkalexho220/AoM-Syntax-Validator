@@ -11,5 +11,5 @@
 <Effects>
 	<Effect name="$$22355$$SetIdleProcessing">
     	<Param name="IdleProc" dispName="$$22356$$Process Idle:" varType="bool">true</Param>
-    	<Command>trSetUnitIdleProcessing(%mod%IdleProc%mod%);</Command>
+    	<Command>trSetUnitIdleProcessing(%IdleProc%);</Command>
 	</Effect>
