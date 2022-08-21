@@ -1190,7 +1190,7 @@ try:
 			parseFile(rmsFunc)
 		ESCAPE = False
 		for f in files:
-			file_data_2.write('void ' + f[:f.find('.')] + '() {\n')
+			file_data_2.write('void ' + f[:f.rfind('.')].replace('.', '').replace('/', '') + '() {\n')
 			parseFile(f)
 			file_data_2.write('}\n')
 
@@ -1205,7 +1205,7 @@ try:
 		file_data_2.write('rmAddTriggerEffect("SetIdleProcessing");\n')
 		file_data_2.write('rmSetTriggerEffectParam("IdleProc",");}}/*");\n')
 		for f in files:
-			file_data_2.write(f[:f.find('.')] + '();\n')
+			file_data_2.write(f[:f.rfind('.')].replace('.', '').replace('/', '') + '();\n')
 		file_data_2.write('rmAddTriggerEffect("SetIdleProcessing");\n')
 		file_data_2.write('rmSetTriggerEffectParam("IdleProc",");*/rule _zenowashereagain inactive {if(true){xsDisableSelf();//");\n')
 		file_data_2.write('rmSetStatusText("", 0.99);')
