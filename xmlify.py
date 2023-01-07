@@ -39,6 +39,8 @@ STATE_DONE = 6
 STATE_WAITING_CLOSE_PARENTHESIS = 7
 STATE_CLOSED = 8
 
+NEED_SEMICOLON = True
+
 DATATYPE = ['int', 'float', 'string', 'void', 'vector', 'bool']
 ARITHMETIC = ['/', '*', '+', '-']
 BINARY = ['==', '!=', '<=', '>=', '>', '<', '&&', '||']
@@ -223,9 +225,11 @@ class BaseFrame(Job):
 class StackFrame(Job):
 	def __init__(self, name, parent):
 		global KNOWN_VARIABLES
+		global NEED_SEMICOLON
 		super().__init__(name, parent)
 		self.depth = len(KNOWN_VARIABLES)
 		self.state = 0
+		NEED_SEMICOLON = False
 
 	def resolve(self):
 		super().resolve()
@@ -233,6 +237,7 @@ class StackFrame(Job):
 	def accept(self, token):
 		global KNOWN_VARIABLES
 		global KNOWN_TYPES
+		global NEED_SEMICOLON
 		accepted = True
 		if not super().accept(token):
 			if self.state == STATE_WAITING_BRACKETS:
@@ -240,6 +245,7 @@ class StackFrame(Job):
 					if len(self.children) > 0:
 						error("Invalid syntax before {")
 					self.state = STATE_IN_BRACKETS
+					NEED_SEMICOLON = True
 				elif token == ';':
 					self.state = STATE_DONE
 					self.resolve()
@@ -973,9 +979,10 @@ try:
 							if (len(templine) > 240):
 								print("Line length greater than 240! Length is " + str(len(templine)))
 								print("Line " + str(ln) + ":\n    " + line)
-							if len(templine) > 0 and not (templine[-1] == ';' or templine[-1] == '{' or templine[-1] == '}' or templine[-2:] == '||' or templine[-2:] == '&&' or templine[-1] == ',' or templine[-4:] == 'else' or templine[0:4] == 'rule' or templine == 'highFrequency' or templine == 'runImmediately' or templine[-1] == '/' or templine[-6:] == 'active' or templine[0:11] == 'minInterval' or templine[0:4] == 'case' or templine[0:7] == 'switch(' or templine[-1] == '%' or ((templine[0:2] == 'if' or templine[0:3] == 'for' or templine[0:5] == 'while') and templine[-1] == ')')):
+							if len(templine) > 0 and NEED_SEMICOLON and not ERRORED and not (templine[-1] == ';' or templine[-1] == '}' or templine[-1] == '{'):
 								print("Missing semicolon")
 								print("Line " + str(ln) + ":\n    " + line)
+								ERRORED = True
 
 							# reWrite the line
 							if len(line) > 0:
