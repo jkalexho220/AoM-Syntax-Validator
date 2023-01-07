@@ -39,6 +39,8 @@ STATE_DONE = 6
 STATE_WAITING_CLOSE_PARENTHESIS = 7
 STATE_CLOSED = 8
 
+NEED_SEMICOLON = True
+
 DATATYPE = ['int', 'float', 'string', 'void', 'vector', 'bool']
 ARITHMETIC = ['/', '*', '+', '-']
 BINARY = ['==', '!=', '<=', '>=', '>', '<', '&&', '||']
@@ -223,9 +225,11 @@ class BaseFrame(Job):
 class StackFrame(Job):
 	def __init__(self, name, parent):
 		global KNOWN_VARIABLES
+		global NEED_SEMICOLON
 		super().__init__(name, parent)
 		self.depth = len(KNOWN_VARIABLES)
 		self.state = 0
+		NEED_SEMICOLON = False
 
 	def resolve(self):
 		super().resolve()
@@ -233,6 +237,7 @@ class StackFrame(Job):
 	def accept(self, token):
 		global KNOWN_VARIABLES
 		global KNOWN_TYPES
+		global NEED_SEMICOLON
 		accepted = True
 		if not super().accept(token):
 			if self.state == STATE_WAITING_BRACKETS:
@@ -240,6 +245,7 @@ class StackFrame(Job):
 					if len(self.children) > 0:
 						error("Invalid syntax before {")
 					self.state = STATE_IN_BRACKETS
+					NEED_SEMICOLON = True
 				elif token == ';':
 					self.state = STATE_DONE
 					self.resolve()
@@ -250,7 +256,7 @@ class StackFrame(Job):
 				if token == ';':
 					self.children[0].resolve()
 					if not self.children[0].type in ['ASSIGNMENT', 'FUNCTION', 'BREAK']:
-						error("Unrecognized command.")
+						error("Unrecognized command: " + self.children[0].name)
 					self.children.pop()
 				elif token == '}':
 					KNOWN_VARIABLES = KNOWN_VARIABLES[:self.depth]
@@ -738,6 +744,9 @@ class Variable(Mathable):
 		if not super().accept(token):
 			if token == '=':
 				self.insertAbove(Assignment, token)
+			elif token in ['++', '--']:
+				self.insertAbove(Assignment, token)
+				self.parent.accept('1')
 			else:
 				accepted = False
 		return accepted
@@ -936,55 +945,56 @@ try:
 					bcount = bcount + nostrings.count('{') - nostrings.count('}')
 					
 					if not line.isspace():
-						if ('/*' in nostrings):
-							comment = True
+						if not ERRORED:
+							templine = nostrings
+							for s in SYMBOLS:
+								for n in s:
+									if n == '-':
+										templine = list(templine)
+										for i in range(len(templine)-1):
+											if templine[i] == '-':
+												if templine[i+1].isnumeric() and templine[i-1] in [' ', '(', ',']:
+													templine[i] = ' -'
+												else:
+													templine[i] = ' - '
+										templine = "".join(templine)
+									else:
+										templine = templine.replace(n, ' ' + n + ' ')
+							templine = templine.replace('=', ' = ').replace(' =  = ', ' == ').replace('! = ', ' != ').replace(' >  = ', ' >= ').replace(' <  = ', '<=').replace('minInterval ', 'minInterval').replace('maxInterval ', 'maxInterval').replace('\t', ' ').replace(' /  * ', ' /* ').replace(' *  / ', ' */ ').replace(' +  + ', ' ++ ').replace(' -  - ', ' -- ')
+							tokens = [token for token in templine.split(' ') if token != '']
 
-						if not comment:
-							if not ERRORED:
-								templine = nostrings
-								for s in SYMBOLS:
-									for n in s:
-										if n == '-':
-											templine = list(templine)
-											for i in range(len(templine)-1):
-												if templine[i] == '-':
-													if templine[i+1].isnumeric() and templine[i-1] in [' ', '(', ',']:
-														templine[i] = ' -'
-													else:
-														templine[i] = ' - '
-											templine = "".join(templine)
-										else:
-											templine = templine.replace(n, ' ' + n + ' ')
-								templine = templine.replace('=', ' = ').replace(' =  = ', ' == ').replace('! = ', ' != ').replace(' >  = ', ' >= ').replace(' <  = ', '<=').replace('minInterval ', 'minInterval').replace('maxInterval ', 'maxInterval').replace('\t', ' ')
-								tokens = [token for token in templine.split(' ') if token != '']
-
-								for token in tokens:
-									if not token in IGNORE:
+							for token in tokens:
+								if not comment:
+									if token == '/*':
+										comment = True
+									elif not token in IGNORE:
 										#print(token)
 										BASE_JOB.accept(token)
 										if VERBOSE and not ERRORED:
 											BASE_JOB.debug()
-							
-							templine = reline.strip()
-							if '//' in stringless:
-								templine = templine[:templine.find('//')].strip()
+								elif token == '*/':
+									comment = False
+						
+						templine = reline.strip()
+						if '//' in stringless:
+							templine = templine[:templine.find('//')].strip()
 
-							# Obsolete Sanity Checks
-							if (len(templine) > 240):
-								print("Line length greater than 240! Length is " + str(len(templine)))
-								print("Line " + str(ln) + ":\n    " + line)
-							if len(templine) > 0 and not (templine[-1] == ';' or templine[-1] == '{' or templine[-1] == '}' or templine[-2:] == '||' or templine[-2:] == '&&' or templine[-1] == ',' or templine[-4:] == 'else' or templine[0:4] == 'rule' or templine == 'highFrequency' or templine == 'runImmediately' or templine[-1] == '/' or templine[-6:] == 'active' or templine[0:11] == 'minInterval' or templine[0:4] == 'case' or templine[0:7] == 'switch(' or templine[-1] == '%' or ((templine[0:2] == 'if' or templine[0:3] == 'for' or templine[0:5] == 'while') and templine[-1] == ')')):
-								print("Missing semicolon")
-								print("Line " + str(ln) + ":\n    " + line)
+						# Obsolete Sanity Checks
+						if (len(templine) > 240):
+							print("Line length greater than 240! Length is " + str(len(templine)))
+							print("Line " + str(ln) + ":\n    " + line)
+						if len(templine) > 0 and NEED_SEMICOLON and not ERRORED and not (templine[-1] == ';' or templine[-1] == '}' or templine[-1] == '{'):
+							print("Missing semicolon")
+							print("Line " + str(ln) + ":\n    " + line)
+							ERRORED = True
 
-							# reWrite the line
-							if len(line) > 0:
-								if '<' in line or '&' in line or '|' in line:
-									file_data_2.write('<Command><![CDATA[' + line.rstrip() + ']]></Command>\n')
-								else:
-									file_data_2.write('<Command>' + line.rstrip() + '</Command>\n')
-						if ('*/' in nostrings):
-							comment = False
+						# reWrite the line
+						if len(line) > 0:
+							if '<' in line or '&' in line or '|' in line:
+								file_data_2.write('<Command><![CDATA[' + line.rstrip() + ']]></Command>\n')
+							else:
+								file_data_2.write('<Command>' + line.rstrip() + '</Command>\n')
+
 					else:
 						file_data_2.write('\n')
 					line = file_data_1.readline()
