@@ -744,6 +744,9 @@ class Variable(Mathable):
 		if not super().accept(token):
 			if token == '=':
 				self.insertAbove(Assignment, token)
+			elif token in ['++', '--']:
+				self.insertAbove(Assignment, token)
+				self.parent.accept('1')
 			else:
 				accepted = False
 		return accepted
@@ -957,7 +960,7 @@ try:
 										templine = "".join(templine)
 									else:
 										templine = templine.replace(n, ' ' + n + ' ')
-							templine = templine.replace('=', ' = ').replace(' =  = ', ' == ').replace('! = ', ' != ').replace(' >  = ', ' >= ').replace(' <  = ', '<=').replace('minInterval ', 'minInterval').replace('maxInterval ', 'maxInterval').replace('\t', ' ').replace(' /  * ', ' /* ').replace(' *  / ', ' */ ')
+							templine = templine.replace('=', ' = ').replace(' =  = ', ' == ').replace('! = ', ' != ').replace(' >  = ', ' >= ').replace(' <  = ', '<=').replace('minInterval ', 'minInterval').replace('maxInterval ', 'maxInterval').replace('\t', ' ').replace(' /  * ', ' /* ').replace(' *  / ', ' */ ').replace(' +  + ', ' ++ ').replace(' -  - ', ' -- ')
 							tokens = [token for token in templine.split(' ') if token != '']
 
 							for token in tokens:
