@@ -960,7 +960,7 @@ try:
 										templine = "".join(templine)
 									else:
 										templine = templine.replace(n, ' ' + n + ' ')
-							templine = templine.replace('=', ' = ').replace(' =  = ', ' == ').replace('! = ', ' != ').replace(' >  = ', ' >= ').replace(' <  = ', '<=').replace('minInterval ', 'minInterval').replace('maxInterval ', 'maxInterval').replace('\t', ' ').replace(' /  * ', ' /* ').replace(' *  / ', ' */ ').replace(' +  + ', ' ++ ').replace(' -  - ', ' -- ')
+							templine = templine.replace('=', ' = ').replace(' =  = ', ' == ').replace('! = ', ' != ').replace(' >  = ', ' >= ').replace(' <  = ', '<=').replace('minInterval ', 'minInterval').replace('maxInterval ', 'maxInterval').replace('\t', ' ').replace(' /  * ', ' /* ').replace(' *  / ', ' */ ').replace(' +  + ', ' ++ ').replace(' -  - ', ' -- ').replace(' main ( void )', ' main ( )')
 							tokens = [token for token in templine.split(' ') if token != '']
 
 							for token in tokens:
