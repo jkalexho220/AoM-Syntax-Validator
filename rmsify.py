@@ -1034,6 +1034,7 @@ def parseFile(fn):
 	global comment
 	global ln
 	global line
+	global ERRORED
 	ln = 1
 	pcount = 0 # parenthesis
 	bcount = 0 # brackets
