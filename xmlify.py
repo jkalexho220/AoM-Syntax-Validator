@@ -901,7 +901,7 @@ with open('Commands.xml', 'r') as fd:
 				line = fd.readline()
 		line = fd.readline()
 
-print("rmsification start!")
+print("xmlification start!")
 
 ln = 1
 FILE_1 = None
@@ -980,13 +980,14 @@ try:
 							templine = templine[:templine.find('//')].strip()
 
 						# Obsolete Sanity Checks
-						if (len(templine) > 240):
-							print("Line length greater than 240! Length is " + str(len(templine)))
-							print("Line " + str(ln) + ":\n    " + line)
-						if len(templine) > 0 and NEED_SEMICOLON and not ERRORED and not (templine[-1] == ';' or templine[-1] == '}' or templine[-1] == '{'):
-							print("Missing semicolon")
-							print("Line " + str(ln) + ":\n    " + line)
-							ERRORED = True
+						if not comment:
+							if (len(templine) > 240):
+								print("Line length greater than 240! Length is " + str(len(templine)))
+								print("Line " + str(ln) + ":\n    " + line)
+							if len(templine) > 0 and NEED_SEMICOLON and not ERRORED and not (templine[-1] == ';' or templine[-1] == '}' or templine[-1] == '{' or templine[-1] == ','):
+								print("Missing semicolon")
+								print("Line " + str(ln) + ":\n    " + line)
+								ERRORED = True
 
 						# reWrite the line
 						if len(line) > 0:
