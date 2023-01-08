@@ -339,6 +339,7 @@ class StackFrame(Job):
 		NEED_SEMICOLON = False
 
 	def accept(self, token):
+		global NEED_SEMICOLON
 		knownVars = getKnownVariables()
 		knownTypes = getKnownDatatypes()
 		accepted = True
