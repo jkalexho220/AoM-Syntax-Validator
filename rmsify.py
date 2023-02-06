@@ -789,6 +789,8 @@ class Function(Mathable):
 		self.expected = FUNCTIONS[name].parameters
 		self.state = 0
 		self.count = 0
+		global NEED_SEMICOLON
+		self.semicolon = NEED_SEMICOLON
 
 	def resolve(self):
 		if not self.closed:
@@ -807,6 +809,7 @@ class Function(Mathable):
 				self.children = []
 
 	def accept(self, token):
+		global NEED_SEMICOLON
 		accepted = True
 		if not super().accept(token):
 			if self.closed:
@@ -814,9 +817,11 @@ class Function(Mathable):
 			elif self.state == 0:
 				if token == '(':
 					self.state = 1
+					NEED_SEMICOLON = False
 				else:
 					accepted = False
 			elif token == ')':
+				NEED_SEMICOLON = self.semicolon
 				self.state = 3;
 				self.resolve()
 			elif self.state == 1:
