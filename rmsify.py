@@ -606,10 +606,12 @@ class Declaration(StackFrame):
 		self.line = line
 
 	def resolve(self):
+		global NEED_SEMICOLON
 		if not self.closed:
 			self.closed = True
 			super().resolve()
 			if self.type == 'FUNCTION':
+				NEED_SEMICOLON = False
 				FUNCTIONS.update({self.name : CustomFunction(self.name, self.datatype)})
 				for frame in self.children:
 					FUNCTIONS[self.name].add(frame.datatype)
@@ -621,6 +623,7 @@ class Declaration(StackFrame):
 				print("Line " + str(self.ln) + ":\n    " + self.line)
 
 	def accept(self, token):
+		global NEED_SEMICOLON
 		global THE_TRIGGER_KNOWS
 		global IN_TRIGGER
 		knownVars = getKnownVariables()
@@ -649,6 +652,7 @@ class Declaration(StackFrame):
 					self.depth = len(knownVars)
 					self.state = STATE_IN_PARENTHESIS
 					self.type = 'FUNCTION'
+					NEED_SEMICOLON = False
 				else:
 					self.resolve()
 					self.insertAbove(Assignment, token)
