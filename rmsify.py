@@ -1036,6 +1036,7 @@ def parseFile(fn):
 	global ln
 	global line
 	global ERRORED
+	tabs = ''
 	ln = 1
 	pcount = 0 # parenthesis
 	bcount = 0 # brackets
