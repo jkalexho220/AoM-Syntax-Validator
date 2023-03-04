@@ -657,6 +657,7 @@ class Declaration(StackFrame):
 					self.resolve()
 					self.insertAbove(Assignment, token)
 					self.state = STATE_DONE
+					NEED_SEMICOLON = True
 			elif self.state == STATE_IN_PARENTHESIS:
 				if self.type == 'FUNCTION' and token in DATATYPE:
 					self.children.append(Declaration(token, self))
