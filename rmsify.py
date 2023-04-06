@@ -1038,7 +1038,7 @@ ln = 1
 comment = False
 ESCAPE = True
 
-def parseFile(fn):
+def parseFile(fn, inMain=True):
 	global ESCAPE
 	global RESTORING
 	global comment
@@ -1055,8 +1055,9 @@ def parseFile(fn):
 	thedepth = 0
 	BASE_JOB = BaseFrame()
 	RMS_JOB = BaseFrame()
-	RMS_JOB.children.append(StackFrame('rms',RMS_JOB))
-	RMS_JOB.children[0].state = STATE_IN_BRACKETS
+	if inMain:
+		RMS_JOB.children.append(StackFrame('rms',RMS_JOB))
+		RMS_JOB.children[0].state = STATE_IN_BRACKETS
 	with open(fn, 'r') as file_data_1:
 		line = file_data_1.readline()
 		while line:
@@ -1208,7 +1209,7 @@ try:
 		file_data_2.write('rmSetTriggerEffectParam("IdleProc",");*/"+xs+"/*");}\n')
 		ESCAPE = True
 		if (len(rmsFunc) > 0):
-			parseFile(rmsFunc)
+			parseFile(rmsFunc, inMain=False)
 		ESCAPE = False
 		for f in files:
 			file_data_2.write('void ' + f[:f.rfind('.')].replace('.', '').replace('/', '') + '() {\n')
