@@ -262,6 +262,8 @@ class StackFrame(Job):
 					KNOWN_VARIABLES = KNOWN_VARIABLES[:self.depth]
 					KNOWN_TYPES = KNOWN_TYPES[:self.depth]
 					self.state = STATE_CLOSED
+					if (len(self.children) > 0):
+						error("Missing semicolon (on previous line)")
 					if self.name != 'if':
 						self.resolve()
 						self.parent.children.pop()
@@ -517,6 +519,7 @@ class Declaration(StackFrame):
 				print("Line " + str(self.ln) + ":\n    " + self.line)
 
 	def accept(self, token):
+		global NEED_SEMICOLON
 		global THE_TRIGGER_KNOWS
 		global IN_TRIGGER
 		global KNOWN_VARIABLES
@@ -549,6 +552,7 @@ class Declaration(StackFrame):
 					self.resolve()
 					self.insertAbove(Assignment, token)
 					self.state = STATE_DONE
+					NEED_SEMICOLON = True
 			elif self.state == STATE_IN_PARENTHESIS:
 				if self.type == 'FUNCTION' and token in DATATYPE:
 					self.children.append(Declaration(token, self))
